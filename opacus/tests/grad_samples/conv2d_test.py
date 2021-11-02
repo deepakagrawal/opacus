@@ -20,6 +20,8 @@ import torch
 import torch.nn as nn
 from hypothesis import given, settings
 
+from opacus.grad_sample.grad_sample_module import GradSampleModule
+
 from .common import GradSampleHooks_test, expander, shrinker
 
 
@@ -30,7 +32,7 @@ class Conv2d_test(GradSampleHooks_test):
         H=st.integers(11, 17),
         W=st.integers(11, 17),
         out_channels_mapper=st.sampled_from([expander, shrinker]),
-        kernel_size=st.integers(2, 3),
+        kernel_size=st.integers(2, 4),
         stride=st.integers(1, 2),
         padding=st.sampled_from([0, 2]),
         dilation=st.integers(1, 3),
@@ -68,3 +70,20 @@ class Conv2d_test(GradSampleHooks_test):
             groups=groups,
         )
         self.run_test(x, conv, batch_first=True, atol=10e-5, rtol=10e-4)
+
+
+
+    def test_conv2d_particular(self):
+        """
+        This test is mainly for particular use cases and can be useful for future debugging
+        """
+        x = torch.randn(1, 1, 8, 1)
+        layer = nn.Conv2d(1, 1, kernel_size=(3, 1), groups=1, dilation=(3, 1), bias=None)
+
+        m = GradSampleModule(layer)
+
+        y = m(x)
+        backprops = torch.randn(*y.shape)
+        y.backward(backprops)
+
+        self.assertLess(torch.norm(m._module.weight.grad_sample[0] - m._module.weight.grad), 1e-7)
