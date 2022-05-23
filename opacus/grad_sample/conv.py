@@ -33,7 +33,7 @@ def compute_conv_grad_sample(
     """
     Computes per sample gradients for Conv2d layers.
 
-    args:
+    Args:
         layer: Layer
         activations: Activations
         backprops: Backpropagations
@@ -95,9 +95,10 @@ def convolution2d_backward_as_a_convolution(
     backprops: torch.Tensor,
 ) -> Dict[nn.Parameter, torch.Tensor]:
     """
-    Computes per sample gradients for Conv2d layers.
+    Computes per sample gradients for Conv2d layers using backward.
+    This is an alternative implementation and is not used because it is slower in many contexts.
 
-    args:
+    Args:
         layer: Layer
         activations: Activations
         backprops: Backpropagations
